@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copy this to ~/.m2/settings.xml and fill in the token from the Sonatype
+  Central Portal (Account -> Generate User Token). See PUBLISHING.md.
+
+  This is a TEMPLATE only — never commit real credentials.
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                              https://maven.apache.org/xsd/settings-1.0.0.xsd">
+  <servers>
+    <server>
+      <!-- Must match <publishingServerId>central</publishingServerId> in pom.xml -->
+      <id>central</id>
+      <username>TOKEN_USERNAME</username>
+      <password>TOKEN_PASSWORD</password>
+    </server>
+  </servers>
+</settings>

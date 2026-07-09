@@ -425,6 +425,39 @@ class TasksTest {
     }
 
     @Test
+    void createNetworkErrorRetriedOnlyWithIdempotencyKey() {
+        // Drop the connection before any response so the client sees an IOException.
+        // The StubHandler records the request before invoking the responder, so
+        // requests.size() equals the number of attempts the transport actually made.
+        responder = captured -> {
+            throw new RuntimeException("drop connection");
+        };
+
+        Map<String, Object> input = new LinkedHashMap<>();
+        input.put("prompt", "x");
+
+        // (a) A keyless POST must NOT be retried — a blind retry could double-charge.
+        synchronized (requests) {
+            requests.clear();
+        }
+        assertThrows(APIConnectionException.class, () -> client.tasks().create("m", input));
+        synchronized (requests) {
+            assertEquals(1, requests.size()); // one attempt, no retry
+        }
+
+        // (b) A POST carrying an Idempotency-Key IS safe to retry: the server
+        // collapses duplicate key+body into the first task.
+        synchronized (requests) {
+            requests.clear();
+        }
+        assertThrows(APIConnectionException.class, () -> client.tasks().create("m", input,
+                CreateOptions.builder().idempotencyKey("k-1").build()));
+        synchronized (requests) {
+            assertEquals(3, requests.size()); // initial + maxRetries(2)
+        }
+    }
+
+    @Test
     void createReplaySetsIdempotentReplay() {
         sequence(new Response(200,
                 "{\"code\":200,\"message\":\"success\",\"data\":{\"taskId\":\"tk-hiapi-abc123\"}}",

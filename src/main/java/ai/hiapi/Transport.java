@@ -231,16 +231,37 @@ class Transport {
     }
 
     private double retryDelay(int attempt, HttpResponse<String> response) {
-        if (response != null) {
-            Optional<String> retryAfter = response.headers().firstValue("Retry-After");
-            if (retryAfter.isPresent() && !retryAfter.get().isBlank()) {
+        Optional<String> retryAfter = response == null
+                ? Optional.empty()
+                : response.headers().firstValue("Retry-After");
+        return retryAfterOrBackoff(retryAfter, attempt);
+    }
+
+    /**
+     * Resolves the delay before a retry: honours a {@code Retry-After} header —
+     * numeric seconds or an HTTP-date (RFC 7231) — otherwise falls back to
+     * exponential backoff. The result is clamped to
+     * {@code [0, MAX_RETRY_AFTER_SECONDS]} so a negative (past) date or an
+     * absurd value can't make {@code Thread.sleep()} misbehave. Package-private
+     * so the parsing is unit-testable without mocking an {@link HttpResponse}.
+     */
+    static double retryAfterOrBackoff(Optional<String> retryAfter, int attempt) {
+        if (retryAfter.isPresent() && !retryAfter.get().isBlank()) {
+            String value = retryAfter.get().trim();
+            try {
+                double seconds = Double.parseDouble(value);
+                return Math.max(0.0, Math.min(seconds, MAX_RETRY_AFTER_SECONDS));
+            } catch (NumberFormatException ignored) {
+                // HTTP-date form, e.g. "Wed, 21 Oct 2026 07:28:00 GMT" — honour
+                // it like the Go SDK rather than falling back.
                 try {
-                    double seconds = Double.parseDouble(retryAfter.get().trim());
-                    // Clamp to [0, max]: a negative Retry-After would make
-                    // Thread.sleep() misbehave or break the retry loop.
+                    java.time.ZonedDateTime when = java.time.ZonedDateTime.parse(
+                            value, java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME);
+                    double seconds = java.time.Duration.between(
+                            java.time.ZonedDateTime.now(), when).toMillis() / 1000.0;
                     return Math.max(0.0, Math.min(seconds, MAX_RETRY_AFTER_SECONDS));
-                } catch (NumberFormatException ignored) {
-                    // HTTP-date form: fall back to exponential backoff.
+                } catch (java.time.format.DateTimeParseException ignored2) {
+                    // Unparseable: fall through to exponential backoff.
                 }
             }
         }

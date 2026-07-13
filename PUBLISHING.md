@@ -96,8 +96,8 @@ mvn -Prelease clean deploy -Dgpg.passphrase='YOUR_GPG_PASSPHRASE'
 
 What happens:
 
-1. Maven builds `hiapi-0.1.0.jar`, `hiapi-0.1.0-sources.jar`,
-   `hiapi-0.1.0-javadoc.jar`, plus a `.asc` signature and checksums for each.
+1. Maven builds `hiapi-0.2.0.jar`, `hiapi-0.2.0-sources.jar`,
+   `hiapi-0.2.0-javadoc.jar`, plus a `.asc` signature and checksums for each.
 2. The `central-publishing-maven-plugin` uploads the bundle and **waits until
    validation passes** (`waitUntil=validated`).
 3. Because `autoPublish=false`, it stops there as a **draft deployment** — it is
@@ -105,7 +105,7 @@ What happens:
 
 Then finish in the browser:
 
-4. Central Portal → **Deployments** → find the `ai.hiapi:hiapi:0.1.0` deployment.
+4. Central Portal → **Deployments** → find the `ai.hiapi:hiapi:0.2.0` deployment.
 5. Confirm it shows *validated* (green), review the contents, then click **Publish**.
 6. It syncs to Maven Central: searchable on `central.sonatype.com` quickly, and
    resolvable from `repo1.maven.org` / appearing on `search.maven.org` within a
@@ -118,12 +118,12 @@ skip the manual Publish click on future releases.
 
 ## After the first publish
 
-- **Coordinates are immutable.** You can never re-upload `0.1.0`; the next fix
-  must be `0.1.1`. Bump `<version>` in `pom.xml` (and the README install snippet)
+- **Coordinates are immutable.** You can never re-upload `0.2.0`; the next fix
+  must be `0.2.1`. Bump `<version>` in `pom.xml` (and the README install snippet)
   for every release.
 - Verify the published artifact resolves:
   ```bash
-  mvn dependency:get -Dartifact=ai.hiapi:hiapi:0.1.0
+  mvn dependency:get -Dartifact=ai.hiapi:hiapi:0.2.0
   ```
 
 ## Pre-flight checklist
@@ -134,3 +134,6 @@ skip the manual Publish click on future releases.
 - [ ] GPG public key pushed to a keyserver.
 - [ ] `~/.m2/settings.xml` has the `central` server token.
 - [ ] `mvn clean test` is green.
+- [ ] Any stale earlier-version drafts in the Portal **Deployments** tab are
+      **Dropped** first — an older `0.1.0` upload from an aborted run must not
+      linger; only the `0.2.0` deployment should remain before you Publish.

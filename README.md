@@ -39,6 +39,7 @@ implementation 'ai.hiapi:hiapi:0.2.0'
 import ai.hiapi.HiAPI;
 import ai.hiapi.Task;
 import ai.hiapi.Output;
+import ai.hiapi.RunOptions;
 import java.util.Map;
 
 public class Quickstart {
@@ -51,7 +52,9 @@ public class Quickstart {
                 "prompt", "a cyan glass data center entrance",
                 "resolution", "1080p"
             ),
-            t -> System.out.println("status: " + t.getStatus())  // OnUpdate lambda
+            RunOptions.builder()
+                .onUpdate(t -> System.out.println("status: " + t.getStatus()))
+                .build()
         );
 
         for (Output out : task.getOutput()) {
@@ -105,11 +108,11 @@ for (Task t : page.getItems()) {
 You can also tune `run()` with `RunOptions`:
 
 ```java
-import ai.hiapi.Tasks;
+import ai.hiapi.RunOptions;
 import ai.hiapi.Task;
 import java.util.Map;
 
-Tasks.RunOptions opts = Tasks.RunOptions.builder()
+RunOptions opts = RunOptions.builder()
     .callback(Map.of("url", "https://your-app.com/hiapi/callback", "when", "final"))
     .pollInterval(3.0)
     .timeout(900.0)
@@ -121,7 +124,7 @@ Task task = client.tasks().run("seedance-2-0", Map.of("prompt", "..."), opts);
 
 ## Model routes
 
-Some models expose multiple routes (e.g. `pro`, `ext`) with different pricing or
+Some models expose multiple routes (e.g. `ext`) with different pricing or
 upstream capacity. Pass `route` via `CreateOptions` instead of writing the
 `model@route` suffix:
 
@@ -131,21 +134,22 @@ import ai.hiapi.CreateOptions;
 CreatedTask created = client.tasks().create(
     "gpt-image-2/text-to-image",
     Map.of("prompt", "..."),
-    CreateOptions.builder().route("pro").build()   // preferred over "...@pro"
+    CreateOptions.builder().route("ext").build()   // preferred over "...@ext"
 );
 ```
 
 Omitting `route` (or passing `"default"`) uses the model's default route. An
 unknown route fails fast with a 400 whose message lists the available routes.
-The legacy `"x@pro"` spelling keeps working. When a task was submitted with
+The legacy `"x@ext"` spelling keeps working. When a task was submitted with
 `route`, its detail echoes `task.getRoute()` and `task.getModel()` holds the
-resolved full name (`x@pro`).
+resolved full name (`x@ext`).
 
 ## Idempotent retries
 
 Set `idempotencyKey` (sent as the `Idempotency-Key` header, ≤255 bytes) to make
-task submission safe to retry — same key + same body always returns the first
-task instead of creating and billing a new one:
+task submission safe to retry — retrying the same key + same body within about
+24 hours returns the first task instead of creating and billing a new one
+(after that the key is cleaned up and the same request creates a new task):
 
 ```java
 CreatedTask created = client.tasks().create(
@@ -188,7 +192,7 @@ Map<String, String> headers = readRequestHeaders();
 
 try {
     Task task = client.webhooks().verify(rawBody, headers);
-    if (task.isSucceeded()) {
+    if (task.isSucceeded() && !task.getOutput().isEmpty()) {
         System.out.println(task.getOutput().get(0).getUrl());
     }
     respond(200, "");           // ack with 2xx; HiAPI retries non-2xx

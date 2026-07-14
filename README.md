@@ -5,7 +5,7 @@ Zero-dependency Java client for the [HiAPI](https://hiapi.ai) **unified async ta
 - **Zero runtime dependencies.** JDK only (`java.net.http.HttpClient`, `javax.crypto.Mac`, a hand-rolled JSON parser).
 - **One-call workflow.** `client.tasks().run(...)` submits and waits for you.
 - **Immutable models.** Plain `final` fields + getters, parsed straight off the wire.
-- **Webhook verification.** HMAC-SHA256 signature + replay check, built in.
+- **Webhook verification.** HMAC-SHA256 signature + timestamp freshness check, built in (still deduplicate deliveries by task id).
 
 > For OpenAI-compatible chat/image endpoints, keep using your existing OpenAI Java
 > client with `baseUrl = "https://api.hiapi.ai/v1"`. This SDK focuses on what the
@@ -163,8 +163,8 @@ if (created.isIdempotentReplay()) {
 ```
 
 With a key set, the SDK also retries the POST on network errors and
-automatically waits out `409 IDEMPOTENCY_KEY_PROCESSING` (the first request is
-still in flight). Reusing a key with a **different** body throws
+retries `409 IDEMPOTENCY_KEY_PROCESSING` (the first request is
+still in flight) up to the retry limit (default 2), honouring `Retry-After` capped at 60s. Reusing a key with a **different** body throws
 `IdempotencyKeyMismatchException` — that's a key-construction bug, not
 retryable. Both options are also available on `RunOptions` for `run()`.
 
@@ -181,6 +181,9 @@ import ai.hiapi.WebhookVerificationException;
 import java.time.Duration;
 import java.util.Map;
 
+// Sketch — wire into your HTTP framework of choice. readRawRequestBody(),
+// readRequestHeaders() and respond() stand in for your framework's
+// request/response API; cap the request body size (e.g. 1 MiB) before reading.
 HiAPI client = HiAPI.builder()
     .apiKey("sk-...")
     .webhookSecret("whsec_...")   // SAME key you set in the HiAPI console

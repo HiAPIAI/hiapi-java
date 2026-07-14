@@ -220,6 +220,7 @@ All exceptions are unchecked (`RuntimeException` subtypes) in package `ai.hiapi`
 | `NotFoundException` | 404 — unknown task or not yours |
 | `InvalidRequestException` | `INVALID_REQUEST` — fix the request |
 | `ModelUnavailableException` | `MODEL_UNAVAILABLE` — retry or switch model |
+| `APIException` with `getErrorCode()` = `TASK_FAILED` | the submission was rejected synchronously (no dedicated class — distinct from `TaskFailedException` below, which is a polled task ending in `status=fail`) |
 | `TaskTimeoutException` / `StorageUnavailableException` | retryable upstream errors |
 | `ServiceUnavailableException` | 503 — platform busy (auto-retried) |
 | `IdempotencyKeyProcessingException` | 409 — same key still in flight (auto-retried; retryable) |
@@ -234,9 +235,12 @@ All exceptions are unchecked (`RuntimeException` subtypes) in package `ai.hiapi`
 honours `Retry-After`). Network errors are retried **only for idempotent reads**
 (`retrieve` / `list`, and the polling inside `waitFor` / `run`). The `POST` that `create()`
 issues is **never** retried on a network failure — unless you set `idempotencyKey`,
-which makes the retry safe server-side. Without a key, a dropped connection can't
-silently create a second, double-charged task — if `create()` throws
-`APIConnectionException`, confirm with `list()` before retrying.
+which makes the retry safe server-side. Without a key, an `APIConnectionException`
+from `create()` leaves the request in an **unknown** state — a task may or may not
+have been created (and billed). `list()` can help you inspect recent tasks manually,
+but tasks don't echo your `input` back, so absence from the list doesn't prove the
+request failed — don't retry automatically on that basis. For anything automated,
+submit with an `idempotencyKey` so the retry is safe by design.
 
 ## Configuration
 

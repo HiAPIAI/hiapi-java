@@ -67,7 +67,14 @@ public class Quickstart {
 
 `run()` blocks until the task reaches a terminal state. It throws `TaskFailedException`
 if the task fails and `PollTimeoutException` if it doesn't finish within the timeout
-(default 600s).
+(default 600s). A poll timeout does **not** cancel the task — it may still finish
+(and bill) later; take `getTaskId()` from the `PollTimeoutException` and `retrieve()`
+it instead of submitting the same request again.
+
+Output URLs are **temporary** — they expire about 7 days after creation (each
+output carries `getExpireAt()`). To keep an output long-term, promote it to
+persistent storage before it expires — see the
+[Output Storage docs](https://docs.hiapi.ai/storage/).
 
 ## Lower-level control
 
@@ -208,7 +215,10 @@ The client reads the `X-HiAPI-Timestamp` and `X-HiAPI-Signature` headers
 (case-insensitive), recomputes `HMAC_SHA256(secret, timestamp + "." + rawBody)`,
 compares it in constant time, and rejects timestamps outside a 300-second window.
 
-Callbacks are delivered **at least once** — deduplicate by `task.getTaskId()`.
+Callbacks are delivered **at least once** and can arrive concurrently — make your
+handler idempotent (e.g. upsert your own record keyed by `task.getTaskId()`) and
+return 2xx only after processing succeeds. Duplicates are then harmless, and a
+failed or crashed handler is simply redelivered.
 
 ## Errors
 

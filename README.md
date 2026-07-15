@@ -23,14 +23,14 @@ Maven coordinates:
 <dependency>
   <groupId>ai.hiapi</groupId>
   <artifactId>hiapi</artifactId>
-  <version>0.2.0</version>
+  <version>0.2.1</version>
 </dependency>
 ```
 
 Gradle:
 
 ```groovy
-implementation 'ai.hiapi:hiapi:0.2.0'
+implementation 'ai.hiapi:hiapi:0.2.1'
 ```
 
 ## Quick start

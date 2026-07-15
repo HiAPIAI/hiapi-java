@@ -96,34 +96,29 @@ mvn -Prelease clean deploy -Dgpg.passphrase='YOUR_GPG_PASSPHRASE'
 
 What happens:
 
-1. Maven builds `hiapi-0.2.0.jar`, `hiapi-0.2.0-sources.jar`,
-   `hiapi-0.2.0-javadoc.jar`, plus a `.asc` signature and checksums for each.
+1. Maven builds `hiapi-0.2.1.jar`, `hiapi-0.2.1-sources.jar`,
+   `hiapi-0.2.1-javadoc.jar`, plus a `.asc` signature and checksums for each.
 2. The `central-publishing-maven-plugin` uploads the bundle and **waits until
    validation passes** (`waitUntil=validated`).
-3. Because `autoPublish=false`, it stops there as a **draft deployment** — it is
-   NOT yet on Maven Central.
+3. Because `autoPublish=true` (flipped after the manually-reviewed first release),
+   it then **publishes automatically** — no browser step needed. It syncs to
+   Maven Central: searchable on `central.sonatype.com` quickly, and resolvable
+   from `repo1.maven.org` / appearing on `search.maven.org` within ~15–30 min.
 
-Then finish in the browser:
-
-4. Central Portal → **Deployments** → find the `ai.hiapi:hiapi:0.2.0` deployment.
-5. Confirm it shows *validated* (green), review the contents, then click **Publish**.
-6. It syncs to Maven Central: searchable on `central.sonatype.com` quickly, and
-   resolvable from `repo1.maven.org` / appearing on `search.maven.org` within a
-   few hours.
-
-Once you trust the flow, set `<autoPublish>true</autoPublish>` in `pom.xml` to
-skip the manual Publish click on future releases.
+To go back to reviewed releases, set `<autoPublish>false</autoPublish>` — the
+upload then stops as a draft in Central Portal → **Deployments**, where you
+review and click **Publish** manually.
 
 ---
 
 ## After the first publish
 
-- **Coordinates are immutable.** You can never re-upload `0.2.0`; the next fix
-  must be `0.2.1`. Bump `<version>` in `pom.xml` (and the README install snippet)
+- **Coordinates are immutable.** You can never re-upload `0.2.1`; the next fix
+  must be `0.2.2`. Bump `<version>` in `pom.xml` (and the README install snippet)
   for every release.
 - Verify the published artifact resolves:
   ```bash
-  mvn dependency:get -Dartifact=ai.hiapi:hiapi:0.2.0
+  mvn dependency:get -Dartifact=ai.hiapi:hiapi:0.2.1
   ```
 
 ## Pre-flight checklist
@@ -136,4 +131,4 @@ skip the manual Publish click on future releases.
 - [ ] `mvn clean test` is green.
 - [ ] Any stale earlier-version drafts in the Portal **Deployments** tab are
       **Dropped** first — an older `0.1.0` upload from an aborted run must not
-      linger; only the `0.2.0` deployment should remain before you Publish.
+      linger; only the `0.2.1` deployment should remain before you Publish.

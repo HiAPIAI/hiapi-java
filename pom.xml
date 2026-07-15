@@ -6,7 +6,7 @@
 
   <groupId>ai.hiapi</groupId>
   <artifactId>hiapi</artifactId>
-  <version>0.2.0</version>
+  <version>0.2.1</version>
   <packaging>jar</packaging>
 
   <name>HiAPI Java SDK</name>
@@ -139,9 +139,9 @@
             <configuration>
               <!-- Matches the <server><id> in ~/.m2/settings.xml. -->
               <publishingServerId>central</publishingServerId>
-              <!-- false = leave the upload in the Portal as a draft to review
-                   and click Publish manually. Flip to true once you trust it. -->
-              <autoPublish>false</autoPublish>
+              <!-- true = publish automatically once validation passes (first release
+                   was reviewed and published manually; flow is now trusted). -->
+              <autoPublish>true</autoPublish>
               <waitUntil>validated</waitUntil>
             </configuration>
           </plugin>

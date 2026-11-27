@@ -33,7 +33,7 @@ class ModelTest {
     void taskFromMapParsesRealSuccessFields() {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("taskId", "tk-hiapi-abc123");
-        data.put("model", "seedance-2-0");
+        data.put("model", "seedance-2.0");
         data.put("status", "success");
         data.put("created", 1777800499.0);
         data.put("completed", 1777800799.0);
@@ -45,7 +45,7 @@ class ModelTest {
         Task task = Task.fromMap(data);
 
         assertEquals("tk-hiapi-abc123", task.getTaskId());
-        assertEquals("seedance-2-0", task.getModel());
+        assertEquals("seedance-2.0", task.getModel());
         assertEquals("success", task.getStatus());
         assertTrue(task.isTerminal());
         assertTrue(task.isSucceeded());
@@ -95,7 +95,7 @@ class ModelTest {
     void failTaskExposesError() {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("taskId", "tk-hiapi-abc123");
-        data.put("model", "seedance-2-0");
+        data.put("model", "seedance-2.0");
         data.put("status", "fail");
         Map<String, Object> error = new LinkedHashMap<>();
         error.put("code", "TASK_FAILED");

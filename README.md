@@ -8,7 +8,7 @@ Zero-dependency Java client for the [HiAPI](https://hiapi.ai) **unified async ta
 - **Webhook verification.** HMAC-SHA256 signature + timestamp freshness check, built in (still deduplicate deliveries by task id).
 
 > For OpenAI-compatible chat/image endpoints, keep using your existing OpenAI Java
-> client with `baseUrl = "https://api.hiapi.ai/v1"`. This SDK focuses on what the
+> client with `baseUrl = "https://api.hiapi.sh/v1"`. This SDK focuses on what the
 > OpenAI client can't do: the asynchronous **submit → poll → retrieve** lifecycle (results come back as output URLs).
 
 ## Requirements
@@ -47,7 +47,7 @@ public class Quickstart {
         HiAPI client = new HiAPI("sk-...");  // or set HIAPI_API_KEY
 
         Task task = client.tasks().run(
-            "seedance-2-0",
+            "seedance-2.0",
             Map.of(
                 "prompt", "a cyan glass data center entrance",
                 "resolution", "1080p"
@@ -88,7 +88,7 @@ import ai.hiapi.TaskPage;
 import java.util.Map;
 
 CreatedTask created = client.tasks().create(
-    "seedance-2-0",
+    "seedance-2.0",
     Map.of("prompt", "...", "resolution", "720p"),
     Map.of("url", "https://your-app.com/hiapi/callback", "when", "final")
 );
@@ -126,7 +126,7 @@ RunOptions opts = RunOptions.builder()
     .onUpdate(t -> System.out.println("status: " + t.getStatus()))
     .build();
 
-Task task = client.tasks().run("seedance-2-0", Map.of("prompt", "..."), opts);
+Task task = client.tasks().run("seedance-2.0", Map.of("prompt", "..."), opts);
 ```
 
 ## Model routes
@@ -160,7 +160,7 @@ task submission safe to retry — retrying the same key + same body within about
 
 ```java
 CreatedTask created = client.tasks().create(
-    "seedance-2-0",
+    "seedance-2.0",
     Map.of("prompt", "..."),
     CreateOptions.builder().idempotencyKey("order-8472:video").build()
 );
@@ -262,7 +262,7 @@ import java.time.Duration;
 
 HiAPI client = HiAPI.builder()
     .apiKey("sk-...")                          // falls back to HIAPI_API_KEY
-    .baseUrl("https://api.hiapi.ai/v1")        // default
+    .baseUrl("https://api.hiapi.sh/v1")        // default; falls back to HIAPI_BASE_URL
     .timeout(Duration.ofSeconds(60))           // per-request, default 60s
     .maxRetries(2)                             // default 2
     .webhookSecret("whsec_...")                // falls back to HIAPI_WEBHOOK_SECRET

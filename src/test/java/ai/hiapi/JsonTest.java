@@ -120,11 +120,11 @@ class JsonTest {
     @Test
     void writesObjectsAndArrays() {
         Map<String, Object> map = new LinkedHashMap<>();
-        map.put("model", "seedance-2-0");
+        map.put("model", "seedance-2.0");
         Map<String, Object> input = new LinkedHashMap<>();
         input.put("prompt", "hi");
         map.put("input", input);
-        assertEquals("{\"model\":\"seedance-2-0\",\"input\":{\"prompt\":\"hi\"}}", Json.write(map));
+        assertEquals("{\"model\":\"seedance-2.0\",\"input\":{\"prompt\":\"hi\"}}", Json.write(map));
 
         List<Object> list = new ArrayList<>();
         list.add(1.0);

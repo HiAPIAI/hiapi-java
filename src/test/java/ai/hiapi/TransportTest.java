@@ -58,4 +58,11 @@ class TransportTest {
         assertEquals(0.5, Transport.retryAfterOrBackoff(Optional.empty(), 0));
         assertEquals(2.0, Transport.retryAfterOrBackoff(Optional.empty(), 2));
     }
+
+    @Test
+    void baseUrlPriorityExplicitThenEnvThenDefault() {
+        assertEquals("https://a.example.com/v1", HiAPI.resolveBaseUrl("https://a.example.com/v1", "https://env.example.com"));
+        assertEquals("https://env.example.com", HiAPI.resolveBaseUrl(null, "https://env.example.com"));
+        assertEquals(HiAPI.DEFAULT_BASE_URL, HiAPI.resolveBaseUrl(null, null));
+    }
 }

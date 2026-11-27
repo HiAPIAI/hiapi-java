@@ -150,7 +150,7 @@ class TasksTest {
 
     private static Response detail(String status, String extraFields) {
         StringBuilder data = new StringBuilder();
-        data.append("{\"taskId\":\"tk-hiapi-abc123\",\"model\":\"seedance-2-0\",\"status\":\"")
+        data.append("{\"taskId\":\"tk-hiapi-abc123\",\"model\":\"seedance-2.0\",\"status\":\"")
                 .append(status).append("\"");
         if (extraFields != null && !extraFields.isEmpty()) {
             data.append(",").append(extraFields);
@@ -173,7 +173,7 @@ class TasksTest {
 
         Map<String, Object> input = new LinkedHashMap<>();
         input.put("prompt", "hi");
-        CreatedTask created = client.tasks().create("seedance-2-0", input);
+        CreatedTask created = client.tasks().create("seedance-2.0", input);
 
         assertEquals("tk-hiapi-abc123", created.getTaskId());
 
@@ -186,7 +186,7 @@ class TasksTest {
         Object parsedBody = Json.parse(req.body);
         @SuppressWarnings("unchecked")
         Map<String, Object> bodyMap = (Map<String, Object>) parsedBody;
-        assertEquals("seedance-2-0", bodyMap.get("model"));
+        assertEquals("seedance-2.0", bodyMap.get("model"));
         @SuppressWarnings("unchecked")
         Map<String, Object> sentInput = (Map<String, Object>) bodyMap.get("input");
         assertEquals("hi", sentInput.get("prompt"));
@@ -339,7 +339,7 @@ class TasksTest {
         Map<String, Object> input = new LinkedHashMap<>();
         input.put("prompt", "hi");
         RunOptions opts = RunOptions.builder().pollInterval(0.01).timeout(5.0).build();
-        Task task = client.tasks().run("seedance-2-0", input, opts);
+        Task task = client.tasks().run("seedance-2.0", input, opts);
 
         assertTrue(task.isSucceeded());
         synchronized (requests) {

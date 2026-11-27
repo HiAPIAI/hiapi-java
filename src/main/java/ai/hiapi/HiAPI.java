@@ -12,7 +12,7 @@ import java.time.Duration;
  * <pre>
  *     HiAPI client = new HiAPI("sk-...");
  *     Task task = client.tasks().run(
- *             "seedance-2-0",
+ *             "seedance-2.0",
  *             java.util.Map.of("prompt", "a cyan glass data center", "resolution", "1080p"));
  *     System.out.println(task.getOutput().get(0).getUrl());
  * </pre>
@@ -35,7 +35,7 @@ public final class HiAPI {
     public static final String VERSION = "0.2.0";
 
     /** Default API base URL, including the {@code /v1} prefix. */
-    public static final String DEFAULT_BASE_URL = "https://api.hiapi.ai/v1";
+    public static final String DEFAULT_BASE_URL = "https://api.hiapi.sh/v1";
 
     /** Default per-request timeout. */
     public static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(60);
@@ -63,7 +63,7 @@ public final class HiAPI {
      */
     public HiAPI(String apiKey) {
         this(resolveApiKey(apiKey),
-                DEFAULT_BASE_URL,
+                resolveBaseUrl(null, envOrNull("HIAPI_BASE_URL")),
                 DEFAULT_TIMEOUT,
                 DEFAULT_MAX_RETRIES,
                 envOrNull(WEBHOOK_SECRET_ENV));
@@ -142,6 +142,21 @@ public final class HiAPI {
     }
 
     /**
+     * Picks the base URL: explicit value, then the {@code HIAPI_BASE_URL}
+     * environment value, then {@link #DEFAULT_BASE_URL}.
+     *
+     * @param explicit the caller-supplied URL, or {@code null}
+     * @param env      the environment value, or {@code null}
+     * @return the resolved base URL
+     */
+    static String resolveBaseUrl(String explicit, String env) {
+        if (explicit != null) {
+            return explicit;
+        }
+        return (env != null) ? env : DEFAULT_BASE_URL;
+    }
+
+    /**
      * Reads an environment variable, returning {@code null} when it is unset or
      * blank.
      *
@@ -163,7 +178,7 @@ public final class HiAPI {
     public static final class Builder {
 
         private String apiKey;
-        private String baseUrl = DEFAULT_BASE_URL;
+        private String baseUrl;
         private Duration timeout = DEFAULT_TIMEOUT;
         private int maxRetries = DEFAULT_MAX_RETRIES;
         private String webhookSecret;
@@ -186,13 +201,14 @@ public final class HiAPI {
 
         /**
          * Sets the API base URL (including the {@code /v1} prefix). A {@code null}
-         * value resets it to the default.
+         * value falls back to the {@code HIAPI_BASE_URL} environment variable,
+         * then the default.
          *
          * @param baseUrl the base URL, or {@code null} for the default
          * @return this builder
          */
         public Builder baseUrl(String baseUrl) {
-            this.baseUrl = (baseUrl != null) ? baseUrl : DEFAULT_BASE_URL;
+            this.baseUrl = baseUrl;
             return this;
         }
 
@@ -245,7 +261,7 @@ public final class HiAPI {
         public HiAPI build() {
             String resolvedKey = resolveApiKey(apiKey);
             String resolvedSecret = (webhookSecret != null) ? webhookSecret : envOrNull(WEBHOOK_SECRET_ENV);
-            return new HiAPI(resolvedKey, baseUrl, timeout, maxRetries, resolvedSecret);
+            return new HiAPI(resolvedKey, resolveBaseUrl(baseUrl, envOrNull("HIAPI_BASE_URL")), timeout, maxRetries, resolvedSecret);
         }
     }
 }
